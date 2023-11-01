@@ -106,15 +106,15 @@ openssl req \
   -out /etc/ssl/certs/apache-selfsigned.crt \
   -subj "/C=$OPENSSL_COUNTRY/ST=$OPENSSL_PROVINCE/L=$OPENSSL_LOCALITY/O=$OPENSSL_ORGANIZATION/OU=$OPENSSL_ORGUNIT/CN=$OPENSSL_COMMON_NAME/emailAddress=$OPENSSL_EMAIL"
 ```
-Con el comando openssl se crea un certificado autofirmado:
-1. `req` Crea solicitudes en el formato `PKCS#10`
-2. `-x509`
-3. `-nodes`
-4. `-days 365`
-5. `-newkey rsa:2048`
-6. `-keyout /etc/ssl/private/apache-selfsigned.key`
-7. `-out`
-8. `-subj`
+Con el comando openssl creamos un certificado autofirmado:
+1. `req` Crea certificados autofirmados, tambien puede ser utilizado para crear solicitudes en el formato `PKCS#10` 
+2. `-x509` Indica que queremos crear un certificado autofirmado en vez de una solicitud de certificado
+3. `-nodes` Indica que la clave privada del certificado no está protegida por contraseña y sin encriptar
+4. `-days 365` Indica la validez del certificado, que será de 365
+5. `-newkey rsa:2048` Indica que genere una nueva clave privada de 2048 bits junto al certificado
+6. `-keyout /etc/ssl/private/apache-selfsigned.key` Indica la ubicación donde se guardará la clave privada generada
+7. `-out /etc/ssl/certs/apache-selfsigned.crt \`  Indica el la ubicacion y nombre del archivo donde se guardara el certificado
+8. `-subj` Se utiliza para automatizar la creación del certificacion, se indica el pais, la provincia, la localidad, el nombre de la organización, el nombre de la unidad de la organización, el nombre y el correo electronico
 ```bash
 
 #copiamos archivo virtualhost de ssl/tls
