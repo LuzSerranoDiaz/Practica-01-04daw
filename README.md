@@ -115,8 +115,30 @@ Con el comando openssl creamos un certificado autofirmado:
 6. `-keyout /etc/ssl/private/apache-selfsigned.key` Indica la ubicación donde se guardará la clave privada generada
 7. `-out /etc/ssl/certs/apache-selfsigned.crt \`  Indica el la ubicacion y nombre del archivo donde se guardara el certificado
 8. `-subj` Se utiliza para automatizar la creación del certificacion, se indica el pais, la provincia, la localidad, el nombre de la organización, el nombre de la unidad de la organización, el nombre y el correo electronico
-```bash
 
+### default-ssl.conf
+```
+ServerSignature Off
+ServerTokens Prod
+
+<VirtualHost *:443>
+    #ServerName practica-https.local
+    DocumentRoot /var/www/html
+    DirectoryIndex index.php index.html
+
+    SSLEngine on
+    SSLCertificateFile /etc/ssl/certs/apache-selfsigned.crt
+    SSLCertificateKeyFile /etc/ssl/private/apache-selfsigned.key
+</VirtualHost>
+```
+* `<VirtualHost *:443>` Escuchará el puerto HTTPS
+* `ServerName` Indica el nombre del dominio e indica al servidor web APache que peticiones debe servir para este virtual host.
+* `DocumentRoot` Donde se encuentra el directorio raiz del host virtual
+* `SSLEngine on` Indica que este virtual host utilizará SSL/TLS
+* `SSLCertificateFile` Indica la ruta donde se encuentra el certificado autofirmado
+* `SSLCertificateKeyFile` Indica la ruta donde se encuentra la clave privada del certificado autofirmado
+
+```bash
 #copiamos archivo virtualhost de ssl/tls
 cp ../conf/default-ssl.conf /etc/apache2/sites-available
 
@@ -125,7 +147,32 @@ a2ensite default-ssl.conf
 
 #habilitamos modulo ssl para apache
 a2enmod ssl
+```
+1. Copiamos default-ssl.conf a /apache2/sites-available para ser abilitado
+2. Abilitamos el virtualhost utilizando el comando `a2ensite`
+3. Abilitamos el modulo para apache2 utilizando `a2enmod`
 
+### 000-default.conf
+```
+<VirtualHost *:80>
+    #ServerName practica-https.local
+    DocumentRoot /var/www/html
+
+    # Redirige al puerto 443 (HTTPS)
+    RewriteEngine On
+    RewriteCond %{HTTPS} off
+    RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+</VirtualHost>
+```
+* `<VirtualHost *:80>` Escucha el puerto 80 (HTTP)
+* `RewriteEngine On` Habilita el motor de reescritura de URLS y nos permite usar reglas de reescritura
+* `RewriteCond %{HTTPS} off` Esta directiva es una condición que comprueba si la peticion recibida utiliza HTTPS o no. Si se cumple esta condición entonces se ejecuta la siguiente linea.
+* `RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]` Las reglas de reescritura tienen la siguiente sintaxis RewriteRule Pattern Substitution   [flags]
+* `Pattern` El patron que se debe cumplir en la URL solicitada para que la regla de reescritura se aplique. En este caso, ^ coincide con el principio de la URL, por lo que se aplicará a todas las solicitudes.
+* `Substitution` Es la URL a la que se redirige la solicitud. En este caso, se utiliza el valor https://%{HTTP_HOST}%{REQUEST_URI} y por lo tanto se redirige la solicitud a HTTPS manteniendo el mismo nombre de dominio y URI
+* `flags`  Son los flags que se pueden utilizar para modificar el comportamiento de la regla de reescritura. En este caso, el flag [L,R=301] indica que es una redirección permanente (Código de estado: 301).
+
+```bash
 #copiamos el archivo de virtualhost de http
 cp ../conf/000-default.conf /etc/apache2/sites-available
 
@@ -133,6 +180,8 @@ cp ../conf/000-default.conf /etc/apache2/sites-available
 a2enmod rewrite
 
 systemctl restart apache2
-
 ```
+1. Se mueve el archivo de configuración a sites-available a ser habilitado
+2. Se habilita el archivo con `a2enmod`
+3. Reiniciamos
 
